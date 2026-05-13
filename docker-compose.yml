@@ -1,0 +1,33 @@
+services:
+  # Redis 資料庫
+  redis:
+    image: redis:7-alpine
+    container_name: websocket-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+  # WebSocket 推播伺服器
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: websocket-server
+    ports:
+      - "8080:8080"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+# 資料持久化
+volumes:
+  redis-data:
